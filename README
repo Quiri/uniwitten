@@ -1,7 +1,7 @@
 
-Das ist das Repository des DS Kurse der UWH.
+Das ist das Repository des DS Kurses der UWH.
 
-Das ist ein Beispiel git README
+Das ist ein Beispiel git README.
 
 Wichtigste git Befehle:
 
@@ -10,3 +10,6 @@ Wichtigste git Befehle:
 `git commit -m`
 `git push`
 `git pull`  
+
+
+P.S. Das Problem sitzt meistens nicht im Rechner, sondern davor.
