@@ -1,0 +1,12 @@
+
+Das ist das Repository des DS Kurse der UWH.
+
+Das ist ein Beispiel git README
+
+Wichtigste git Befehle:
+
+`git init`
+`git add`
+`git commit -m`
+`git push`
+`git pull`  
