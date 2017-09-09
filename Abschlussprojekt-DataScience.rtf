@@ -1,0 +1,58 @@
+Datenprojekt: 					Seminar Data Science\
+Projektteam: 					Jasper Abbing, Christopher Fitzgerald, Julian Nagel, Malte Piening\
+Fragestellung des Datenprojekts: 	Ermittlung der durchschnittlichen Albuml\'e4nge im jeweiligen Musikgenre. \
+\
+\
+Vorgehensweise und SQL Skript: \
+\
+In unserem Datenprojekt haben wir uns daf\'fcr entschieden die Ermittlung mit einem reinen SQL Skript durchzuf\'fchren.\
+Um die durchschnittliche Albuml\'e4nge pro Genre zu ermitteln muss man die Gesamtl\'e4nge aller Alben eines Genres durch die An-\
+zahl der Alben pro Genre teilen. Die Berechnung f\'fcr das jeweilige Genre lautet also wie folgt: \
+\
+			Durchschnittliche Albuml\'e4nge pro Genre = (L\'e4nge aller Alben eines Genres)/(Anzahl aller Alben eines Genres)\
+\
+Da die Datenbank diese beiden Informationen nicht direkt zur Verf\'fcgung stellt, haben wir die beiden Teile des Bruchs separat zu \
+ermitteln und am Ende im Bruch zusammenzubringen. Um die Schritte am Ende nachvollziehen zu k\'f6nnen, haben wir uns daf\'fcr \
+entschiedenen pro Ausf\'fchrungsschritt eine separate Tabelle in der Datenbank zu erstellen. Wir sind uns dem bewusst, dass dies \
+nicht die effizienteste Variante ist und es auch die M\'f6glichkeit gibt \'84Views\'93 (vor\'fcbergehende Tabellen in der Datenbank) zu erzeu-\
+gen, allerdings ist dies in unserer Sicht die am einfachsten nachvollziehbare Variante und f\'fcr unsere Zwecke mehr als ausreichend.  Unser Vorgehen ist also folgendes:  \
+\
+1. 	Wir \'f6ffnen zuerst das Terminal und starten anschlie\'dfend in einem Arbeitsschritt Sqlite3  und die dazugehoerige Datenbank. 
+
+
+		sqlite3 '/home/Benutzer/downloads/chinook.db'\
+
+2. 	Damit die Tabellen im Terminal f\'fcr den Benutzer etwas \'fcbersichtlicher Angezeigt werden, geben wir folgende Befehle ein: .mode column on\
+			.header on
+			.mode column on
+			
+			bewirkt, dass die Spalten durch Trennzeichen an Abstand gewinnen und in einer Flucht erscheinen .header on bewirkt, dass die Spalten mit den jeweiligen Spaltenbezeichnungen versehen werden
+		
+		
+		3. 	Als erstes bestimmen wir nun die jeweilige L\'e4nge eines Albums. Dazu erzeugen wir eine neue Tabelle album_length und ben\'f6tigen als Grundlage die Tabellen albums und tracks, die wir miteinander joinen. Dies ist n\'f6tig, um die Tracks den jeweiligen Alben zuzuordnen.
+		
+		CREATE TABLE album_length AS SELECT SUM(Milliseconds) as albumlength, albumid, genreid FROM albums INNER JOIN tracks USING(albumid) GROUP BY(albumid);
+		
+		
+		4. 	Im n\'e4chsten Schritt ermitteln wir die L\'e4nge aller Alben in einem Genre. Dazu ben\'f6tigen wir die Tabellen albumlength und summieren dort die L\'e4ngen aller Alben (\'84albumlength\'93) aus einem Genre auf.  Damit haben wir dann den ersten 			Bestandteil unseres Bruchs ermittelt.
+		
+		CREATE TABLE genre_length AS SELECT genreid, SUM(albumlength) as genrelength FROM album_length GROUP BY(genreid);
+		
+		5. 	Nun ermitteln wir die zweite Komponente unseres Bruchs: Die Anzahl der Alben pro Genre. Dazu z\'e4hlen wir die Alben mit der selben \'84genreid\'93 und erstellen wieder eine neue Tabelle:
+		
+		CREATE TABLE albums_per_genre AS SELECT Count(albumid) as albumspergenre, genreid FROM album_length GROUP BY(genreid);
+		
+		
+		6. 	Zuletzt ermitteln wir nun das eigentliche Ergebnis, da wir Z\'e4hler und Nenner unseres Bruches separat voneinander ermittelt haben. Das Ergebnis wird dann in die neue Tabelle \'84average_albumlegth_per_genre\'93 gespeichert.
+		
+		CREATE TABLE average_albumlength_per_genre AS SELECT genreid, genrelength/albumspergenre as averagealbumlengthpergenre, genrelength, albumspergenre FROM genre_length INNER JOIN albums_per_genre USING(genreid);
+		
+		7. 	Zum Schluss kopieren wir eigentlich nur noch einmal das Ergebnis aus der vorherigen Tabelle in eine neue Tabelle, wobei wir die Spaltennamen umbenennen und das Ergebnis in Minuten umrechnen. Zudem Joiner wir die Tabelle noch einmal, um die Genres nicht als Zahlenwert, sondern mit ihren eigentlichen Bezeichnungen zu sehen.
+		
+		CREATE TABLE final_answer AS SELECT genreid, Name, ((averagealbumlengthpergenre/1000)/60) as averagealbumlengthinminutes, genrelength, albumspergenre FROM average_albumlength_per_genre INNER Join genres USING(genreid);
+		
+		8. 	Damit wir uns das Ergebnis nur vollst\'e4ndig im Terminal ansehen k\'f6nne, geben wir folgende Zeile ein: 
+		
+		SELECT * FROM final_answer;
+		
+		=> Damit sind wir am Ende und k\'f6nnen uns das Ergebnis interpretieren.}
